@@ -5,15 +5,23 @@ This package contains all the core modules for handling sales data:
 - File operations and I/O
 - Data processing, cleaning, and analysis
 - External API integration
+- Report generation
 """
 
-from .file_handler import FileHandler
-from .data_processor import DataProcessor
-from .api_handler import APIHandler
+from .file_handler import FileHandler, read_sales_data, parse_transactions
+from .data_processor import DataProcessor, validate_and_filter
+from .api_handler import APIHandler, fetch_all_products, create_product_mapping, enrich_sales_data, save_enriched_data
+from .report_generator import generate_sales_report, generate_json_report, generate_executive_summary
 
 __version__ = "1.0.0"
 __author__ = "Sales Analytics Team"
-__all__ = ['FileHandler', 'DataProcessor', 'APIHandler']
+__all__ = [
+    'FileHandler', 'read_sales_data', 'parse_transactions',
+    'DataProcessor', 'validate_and_filter',
+    'APIHandler', 'fetch_all_products', 'create_product_mapping', 
+    'enrich_sales_data', 'save_enriched_data',
+    'generate_sales_report', 'generate_json_report', 'generate_executive_summary'
+]
 
 
 def get_version():
@@ -26,7 +34,8 @@ def get_available_modules():
     return {
         'file_handler': 'Handles file operations, reading, writing, and encoding',
         'data_processor': 'Processes, cleans, validates, and analyzes sales data',
-        'api_handler': 'Manages external API integration for product information'
+        'api_handler': 'Manages external API integration for product information',
+        'report_generator': 'Generates comprehensive reports in multiple formats'
     }
 
 
