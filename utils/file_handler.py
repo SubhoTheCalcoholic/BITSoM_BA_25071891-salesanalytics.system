@@ -8,6 +8,192 @@ from typing import List, Dict, Optional, Tuple
 import json
 
 
+def read_sales_data(filename: str) -> List[str]:
+    """
+    Reads sales data from file handling encoding issues
+
+    Args:
+        filename: Path to the sales data file
+
+    Returns:
+        list of raw lines (strings)
+        Expected Output Format: ['T001|2024-12-01|P101|Laptop|2|45000|C001|North', ...]
+
+    Requirements:
+    - Use 'with' statement
+    - Handle different encodings (try 'utf-8', 'latin-1', 'cp1252')
+    - Handle FileNotFoundError with appropriate error message
+    - Skip the header row
+    - Remove empty lines
+    """
+    
+    raw_lines = []
+    
+    try:
+        # Try different encodings to handle non-UTF-8 files
+        encodings = ['utf-8', 'latin-1', 'cp1252']
+        successful_read = False
+        
+        for encoding in encodings:
+            try:
+                with open(filename, 'r', encoding=encoding) as file:
+                    print(f"Attempting to read file with {encoding} encoding...")
+                    
+                    # Read all lines
+                    all_lines = file.readlines()
+                    
+                    if len(all_lines) > 0:
+                        print(f"Successfully read {len(all_lines)} lines with {encoding} encoding")
+                        successful_read = True
+                        
+                        # Skip the header row (first line)
+                        data_lines = all_lines[1:]
+                        
+                        # Remove empty lines and lines with only whitespace
+                        for line in data_lines:
+                            stripped_line = line.strip()
+                            if stripped_line:  # Only add non-empty lines
+                                raw_lines.append(stripped_line)
+                        
+                        print(f"Found {len(raw_lines)} non-empty transaction lines after removing header")
+                        break
+                        
+            except UnicodeDecodeError:
+                print(f"Failed to decode with {encoding} encoding, trying next...")
+                continue
+            except Exception as e:
+                print(f"Error reading file with {encoding} encoding: {str(e)}")
+                continue
+        
+        if not successful_read:
+            raise ValueError("Could not read file with any of the supported encodings")
+            
+    except FileNotFoundError:
+        print(f"Error: File '{filename}' not found. Please check the file path.")
+        return []
+    except Exception as e:
+        print(f"Error reading sales data: {str(e)}")
+        return []
+    
+    # Validate that we have between 50-100 transaction lines
+    if len(raw_lines) < 50 or len(raw_lines) > 100:
+        print(f"Warning: Expected 50-100 transaction lines, but found {len(raw_lines)}")
+    
+    return raw_lines
+
+
+def parse_transactions(raw_lines: List[str]) -> List[Dict]:
+    """
+    Parses raw sales data lines and cleans them
+
+    Args:
+        raw_lines: List of raw transaction strings
+
+    Returns:
+        list of dictionaries with keys:
+        ['TransactionID', 'Date', 'ProductID', 'ProductName', 'Quantity', 'UnitPrice', 'CustomerID', 'Region']
+
+    Example Output:
+    [
+        {
+            'TransactionID': 'T001',
+            'Date': '2024-12-01',
+            'ProductID': 'P101',
+            'ProductName': 'Laptop',
+            'Quantity': 2,           # int type
+            'UnitPrice': 45000.0,    # float type
+            'CustomerID': 'C001',
+            'Region': 'North'
+        },
+        ...
+    ]
+
+    Requirements:
+    - Split by pipe delimiter '|'
+    - Handle commas within ProductName (remove or replace)
+    - Remove commas from numeric fields and convert to proper types
+    - Convert Quantity to int
+    - Convert UnitPrice to float
+    - Skip rows with incorrect number of fields
+    """
+    
+    parsed_transactions = []
+    skipped_count = 0
+    
+    print(f"\nParsing {len(raw_lines)} raw transaction lines...")
+    
+    for i, line in enumerate(raw_lines, 1):
+        try:
+            # Split by pipe delimiter
+            fields = line.split('|')
+            
+            # Check if we have exactly 8 fields
+            if len(fields) != 8:
+                skipped_count += 1
+                continue
+            
+            # Extract and clean each field
+            transaction_id = fields[0].strip()
+            date = fields[1].strip()
+            product_id = fields[2].strip()
+            
+            # Clean ProductName: remove commas and extra spaces
+            product_name = fields[3].strip()
+            product_name = product_name.replace(',', ' ')
+            # Remove extra spaces that might result from comma replacement
+            product_name = ' '.join(product_name.split())
+            
+            # Clean Quantity: remove commas and convert to int
+            quantity_str = fields[4].strip()
+            quantity_str = quantity_str.replace(',', '')
+            try:
+                quantity = int(float(quantity_str))  # Handle cases like '0.0'
+            except ValueError:
+                skipped_count += 1
+                continue
+            
+            # Clean UnitPrice: remove commas and convert to float
+            unit_price_str = fields[5].strip()
+            unit_price_str = unit_price_str.replace(',', '')
+            try:
+                unit_price = float(unit_price_str)
+            except ValueError:
+                skipped_count += 1
+                continue
+            
+            customer_id = fields[6].strip()
+            region = fields[7].strip()
+            
+            # Create transaction dictionary with cleaned data
+            transaction = {
+                'TransactionID': transaction_id,
+                'Date': date,
+                'ProductID': product_id,
+                'ProductName': product_name,
+                'Quantity': quantity,
+                'UnitPrice': unit_price,
+                'CustomerID': customer_id,
+                'Region': region
+            }
+            
+            parsed_transactions.append(transaction)
+            
+        except Exception as e:
+            skipped_count += 1
+            continue
+    
+    print(f"Successfully parsed {len(parsed_transactions)} transactions")
+    print(f"Skipped {skipped_count} lines due to parsing errors or incorrect format")
+    
+    # Show sample of parsed data
+    if parsed_transactions:
+        print("\nSample of parsed transactions (first 3):")
+        for i, trans in enumerate(parsed_transactions[:3], 1):
+            print(f"  {i}. {trans}")
+    
+    return parsed_transactions
+
+
 class FileHandler:
     """Handles file operations for sales data"""
     
