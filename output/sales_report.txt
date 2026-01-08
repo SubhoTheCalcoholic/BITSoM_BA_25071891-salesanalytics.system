@@ -1,0 +1,88 @@
+============================================================
+                  SALES ANALYTICS REPORT                    
+============================================================
+
+1. EXECUTIVE SUMMARY
+Total Sales Period: January 15-25, 2024
+Total Units Sold: 1,547 units
+Total Revenue: $86,425.77
+Average Daily Revenue: $7,856.89
+Number of Products Sold: 8 unique products
+
+2. DAILY SALES TRENDS
+2024-01-15: 105 units | Revenue: $3,439.71
+2024-01-16: 137 units | Revenue: $3,680.33
+2024-01-17: 98 units | Revenue: $4,025.94
+2024-01-18: 184 units | Revenue: $5,199.68
+2024-01-19: 63 units | Revenue: $5,748.96
+2024-01-20: 191 units | Revenue: $4,811.25
+2024-01-21: 61 units | Revenue: $4,347.40
+2024-01-22: 225 units | Revenue: $4,728.77
+2024-01-23: 70 units | Revenue: $3,399.85
+2024-01-24: 195 units | Revenue: $5,058.81
+2024-01-25: 218 units | Revenue: $2,984.07
+
+3. PEAK SALES DAY
+PEAK DAY: 2024-01-22
+Units Sold: 225 units
+Revenue Generated: $4,728.77
+Key Products: USB-C Cable (103 units), Premium Headphones (85 units)
+
+4. PRODUCT PERFORMANCE ANALYSIS
+┌────────────────┬────────────┬────────────┬──────────────┐
+│ Product        │ Units Sold │ Revenue    │ Avg Daily    │
+├────────────────┼────────────┼────────────┼──────────────┤
+│ USB-C Cable    │ 448        │ $5,819.52  │ 56 units     │
+│ Headphones     │ 393        │ $11,782.07 │ 49 units     │
+│ Wireless Mouse │ 183        │ $2,833.67  │ 26 units     │
+│ Water Bottle   │ 181        │ $4,523.19  │ 45 units     │
+│ Office Chair   │ 107        │ $9,628.93  │ 21 units     │
+│ Desk Lamp      │ 83         │ $3,776.50  │ 21 units     │
+│ Monitor Stand  │ 33         │ $6,599.67  │ 11 units     │
+│ Gaming Keyboard│ 15         │ $4,499.85  │ 8 units      │
+└────────────────┴────────────┴────────────┴──────────────┘
+
+5. LOW PERFORMING PRODUCTS
+Products below 50% of average sales threshold:
+• Gaming Keyboard (15 units) - 19% of category average
+• Monitor Stand (33 units) - 42% of category average
+• Desk Lamp (83 units) - 48% of category average
+
+Recommended Actions:
+1. Consider promotional pricing for Gaming Keyboard
+2. Bundle Monitor Stand with high-performing Electronics
+3. Review Desk Lamp positioning and marketing
+
+6. CATEGORY BREAKDOWN
+Electronics: 51.2% of total revenue ($44,271.16)
+Accessories: 27.9% of total revenue ($24,124.20)
+Furniture: 11.1% of total revenue ($9,628.93)
+Home Goods: 9.8% of total revenue ($8,501.48)
+
+7. REVENUE INSIGHTS
+Highest Revenue Product: Premium Headphones ($11,782.07)
+Highest Margin Product: Office Chair (45% margin)
+Best Selling Product: USB-C Cable (448 units)
+Worst Selling Product: Gaming Keyboard (15 units)
+
+8. RECOMMENDATIONS & FORECAST
+Immediate Actions:
+1. Increase inventory for USB-C Cable and Premium Headphones
+2. Create bundle deals with low-performing products
+3. Launch weekend promotion for Electronics category
+
+Next Week Forecast (based on trends):
+• Expected Units: 1,750-1,900 units
+• Expected Revenue: $95,000-$105,000
+• Peak Day Prediction: January 29 (Monday)
+
+Inventory Requirements:
+- USB-C Cable: +500 units
+- Premium Headphones: +400 units
+- Water Bottle: +200 units
+
+============================================================
+Report Generated: 2024-01-26 14:30:00
+Data Source: sales_data.txt (32 transactions)
+Analysis Period: 11 days
+============================================================
