@@ -1,0 +1,33 @@
+{'date': datetime.datetime(2024, 1, 15, 0, 0), 'product_id': 101, 'quantity': 45, 'price': 29.99, 'product_name': 'Premium Headphones', 'category': 'Electronics'}
+{'date': datetime.datetime(2024, 1, 15, 0, 0), 'product_id': 102, 'quantity': 32, 'price': 15.49, 'product_name': 'Wireless Mouse', 'category': 'Electronics'}
+{'date': datetime.datetime(2024, 1, 15, 0, 0), 'product_id': 203, 'quantity': 28, 'price': 89.99, 'product_name': 'Office Chair', 'category': 'Furniture'}
+{'date': datetime.datetime(2024, 1, 16, 0, 0), 'product_id': 101, 'quantity': 52, 'price': 29.99, 'product_name': 'Premium Headphones', 'category': 'Electronics'}
+{'date': datetime.datetime(2024, 1, 16, 0, 0), 'product_id': 104, 'quantity': 67, 'price': 12.99, 'product_name': 'USB-C Cable', 'category': 'Accessories'}
+{'date': datetime.datetime(2024, 1, 16, 0, 0), 'product_id': 105, 'quantity': 18, 'price': 45.5, 'product_name': 'Desk Lamp', 'category': 'Home Goods'}
+{'date': datetime.datetime(2024, 1, 17, 0, 0), 'product_id': 102, 'quantity': 41, 'price': 15.49, 'product_name': 'Wireless Mouse', 'category': 'Electronics'}
+{'date': datetime.datetime(2024, 1, 17, 0, 0), 'product_id': 203, 'quantity': 22, 'price': 89.99, 'product_name': 'Office Chair', 'category': 'Furniture'}
+{'date': datetime.datetime(2024, 1, 17, 0, 0), 'product_id': 106, 'quantity': 35, 'price': 24.99, 'product_name': 'Water Bottle', 'category': 'Accessories'}
+{'date': datetime.datetime(2024, 1, 18, 0, 0), 'product_id': 101, 'quantity': 78, 'price': 29.99, 'product_name': 'Premium Headphones', 'category': 'Electronics'}
+{'date': datetime.datetime(2024, 1, 18, 0, 0), 'product_id': 104, 'quantity': 92, 'price': 12.99, 'product_name': 'USB-C Cable', 'category': 'Accessories'}
+{'date': datetime.datetime(2024, 1, 18, 0, 0), 'product_id': 107, 'quantity': 14, 'price': 199.99, 'product_name': 'Monitor Stand', 'category': 'Electronics'}
+{'date': datetime.datetime(2024, 1, 19, 0, 0), 'product_id': 102, 'quantity': 29, 'price': 15.49, 'product_name': 'Wireless Mouse', 'category': 'Electronics'}
+{'date': datetime.datetime(2024, 1, 19, 0, 0), 'product_id': 105, 'quantity': 25, 'price': 45.5, 'product_name': 'Desk Lamp', 'category': 'Home Goods'}
+{'date': datetime.datetime(2024, 1, 19, 0, 0), 'product_id': 108, 'quantity': 9, 'price': 299.99, 'product_name': 'Gaming Keyboard', 'category': 'Electronics'}
+{'date': datetime.datetime(2024, 1, 20, 0, 0), 'product_id': 101, 'quantity': 61, 'price': 29.99, 'product_name': 'Premium Headphones', 'category': 'Electronics'}
+{'date': datetime.datetime(2024, 1, 20, 0, 0), 'product_id': 104, 'quantity': 88, 'price': 12.99, 'product_name': 'USB-C Cable', 'category': 'Accessories'}
+{'date': datetime.datetime(2024, 1, 20, 0, 0), 'product_id': 106, 'quantity': 42, 'price': 24.99, 'product_name': 'Water Bottle', 'category': 'Accessories'}
+{'date': datetime.datetime(2024, 1, 21, 0, 0), 'product_id': 203, 'quantity': 31, 'price': 89.99, 'product_name': 'Office Chair', 'category': 'Furniture'}
+{'date': datetime.datetime(2024, 1, 21, 0, 0), 'product_id': 105, 'quantity': 19, 'price': 45.5, 'product_name': 'Desk Lamp', 'category': 'Home Goods'}
+{'date': datetime.datetime(2024, 1, 21, 0, 0), 'product_id': 107, 'quantity': 11, 'price': 199.99, 'product_name': 'Monitor Stand', 'category': 'Electronics'}
+{'date': datetime.datetime(2024, 1, 22, 0, 0), 'product_id': 101, 'quantity': 85, 'price': 29.99, 'product_name': 'Premium Headphones', 'category': 'Electronics'}
+{'date': datetime.datetime(2024, 1, 22, 0, 0), 'product_id': 102, 'quantity': 37, 'price': 15.49, 'product_name': 'Wireless Mouse', 'category': 'Electronics'}
+{'date': datetime.datetime(2024, 1, 22, 0, 0), 'product_id': 104, 'quantity': 103, 'price': 12.99, 'product_name': 'USB-C Cable', 'category': 'Accessories'}
+{'date': datetime.datetime(2024, 1, 23, 0, 0), 'product_id': 106, 'quantity': 56, 'price': 24.99, 'product_name': 'Water Bottle', 'category': 'Accessories'}
+{'date': datetime.datetime(2024, 1, 23, 0, 0), 'product_id': 107, 'quantity': 8, 'price': 199.99, 'product_name': 'Monitor Stand', 'category': 'Electronics'}
+{'date': datetime.datetime(2024, 1, 23, 0, 0), 'product_id': 108, 'quantity': 6, 'price': 299.99, 'product_name': 'Gaming Keyboard', 'category': 'Electronics'}
+{'date': datetime.datetime(2024, 1, 24, 0, 0), 'product_id': 101, 'quantity': 72, 'price': 29.99, 'product_name': 'Premium Headphones', 'category': 'Electronics'}
+{'date': datetime.datetime(2024, 1, 24, 0, 0), 'product_id': 203, 'quantity': 26, 'price': 89.99, 'product_name': 'Office Chair', 'category': 'Furniture'}
+{'date': datetime.datetime(2024, 1, 24, 0, 0), 'product_id': 104, 'quantity': 97, 'price': 12.99, 'product_name': 'USB-C Cable', 'category': 'Accessories'}
+{'date': datetime.datetime(2024, 1, 25, 0, 0), 'product_id': 102, 'quantity': 44, 'price': 15.49, 'product_name': 'Wireless Mouse', 'category': 'Electronics'}
+{'date': datetime.datetime(2024, 1, 25, 0, 0), 'product_id': 105, 'quantity': 21, 'price': 45.5, 'product_name': 'Desk Lamp', 'category': 'Home Goods'}
+{'date': datetime.datetime(2024, 1, 25, 0, 0), 'product_id': 106, 'quantity': 48, 'price': 24.99, 'product_name': 'Water Bottle', 'category': 'Accessories'}
