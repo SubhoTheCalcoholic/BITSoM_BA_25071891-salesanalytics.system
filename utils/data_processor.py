@@ -6,7 +6,484 @@ Handles data cleaning, validation, and analysis operations
 import re
 from typing import List, Dict, Optional, Tuple, Any
 from datetime import datetime
+from collections import defaultdict
 
+
+# ============================================
+# Task 2.1: Sales Summary Calculator
+# ============================================
+
+def calculate_total_revenue(transactions: List[Dict]) -> float:
+    """
+    Calculates total revenue from all transactions
+
+    Args:
+        transactions: List of transaction dictionaries
+
+    Returns:
+        float (total revenue)
+
+    Expected Output: Single number representing sum of (Quantity * UnitPrice)
+    Example: 1545000.50
+    """
+    
+    total_revenue = 0.0
+    
+    for transaction in transactions:
+        try:
+            quantity = transaction.get('Quantity', 0)
+            unit_price = transaction.get('UnitPrice', 0.0)
+            
+            # Ensure proper types
+            if isinstance(quantity, str):
+                quantity = float(quantity.replace(',', ''))
+            if isinstance(unit_price, str):
+                unit_price = float(unit_price.replace(',', ''))
+            
+            total_revenue += quantity * unit_price
+            
+        except (ValueError, TypeError):
+            # Skip transactions with invalid data
+            continue
+    
+    return round(total_revenue, 2)
+
+
+def region_wise_sales(transactions: List[Dict]) -> Dict[str, Dict]:
+    """
+    Analyzes sales by region
+
+    Args:
+        transactions: List of transaction dictionaries
+
+    Returns:
+        dictionary with region statistics
+
+    Expected Output Format:
+    {
+        'North': {
+            'total_sales': 450000.0,
+            'transaction_count': 15,
+            'percentage': 29.13
+        },
+        'South': {...},
+        ...
+    }
+
+    Requirements:
+    - Calculate total sales per region
+    - Count transactions per region
+    - Calculate percentage of total sales
+    - Sort by total_sales in descending order
+    """
+    
+    region_data = {}
+    total_all_sales = 0.0
+    
+    # First pass: collect data
+    for transaction in transactions:
+        try:
+            region = transaction.get('Region', '').strip()
+            if not region:
+                continue
+                
+            quantity = transaction.get('Quantity', 0)
+            unit_price = transaction.get('UnitPrice', 0.0)
+            
+            # Ensure proper types
+            if isinstance(quantity, str):
+                quantity = float(quantity.replace(',', ''))
+            if isinstance(unit_price, str):
+                unit_price = float(unit_price.replace(',', ''))
+            
+            revenue = quantity * unit_price
+            total_all_sales += revenue
+            
+            if region not in region_data:
+                region_data[region] = {
+                    'total_sales': 0.0,
+                    'transaction_count': 0
+                }
+            
+            region_data[region]['total_sales'] += revenue
+            region_data[region]['transaction_count'] += 1
+            
+        except (ValueError, TypeError):
+            continue
+    
+    # Second pass: calculate percentages and sort
+    result = {}
+    for region, data in region_data.items():
+        percentage = 0.0
+        if total_all_sales > 0:
+            percentage = round((data['total_sales'] / total_all_sales) * 100, 2)
+        
+        result[region] = {
+            'total_sales': round(data['total_sales'], 2),
+            'transaction_count': data['transaction_count'],
+            'percentage': percentage
+        }
+    
+    # Sort by total_sales in descending order
+    sorted_result = dict(sorted(
+        result.items(),
+        key=lambda x: x[1]['total_sales'],
+        reverse=True
+    ))
+    
+    return sorted_result
+
+
+def top_selling_products(transactions: List[Dict], n: int = 5) -> List[Tuple]:
+    """
+    Finds top n products by total quantity sold
+
+    Args:
+        transactions: List of transaction dictionaries
+        n: Number of top products to return (default: 5)
+
+    Returns:
+        list of tuples
+
+    Expected Output Format:
+    [
+        ('Laptop', 45, 2250000.0),  # (ProductName, TotalQuantity, TotalRevenue)
+        ('Mouse', 38, 19000.0),
+        ...
+    ]
+
+    Requirements:
+    - Aggregate by ProductName
+    - Calculate total quantity sold
+    - Calculate total revenue for each product
+    - Sort by TotalQuantity descending
+    - Return top n products
+    """
+    
+    product_data = {}
+    
+    for transaction in transactions:
+        try:
+            product_name = transaction.get('ProductName', '').strip()
+            if not product_name:
+                continue
+                
+            quantity = transaction.get('Quantity', 0)
+            unit_price = transaction.get('UnitPrice', 0.0)
+            
+            # Ensure proper types
+            if isinstance(quantity, str):
+                quantity = int(float(quantity.replace(',', '')))
+            if isinstance(unit_price, str):
+                unit_price = float(unit_price.replace(',', ''))
+            
+            if product_name not in product_data:
+                product_data[product_name] = {
+                    'total_quantity': 0,
+                    'total_revenue': 0.0
+                }
+            
+            product_data[product_name]['total_quantity'] += quantity
+            product_data[product_name]['total_revenue'] += quantity * unit_price
+            
+        except (ValueError, TypeError):
+            continue
+    
+    # Convert to list of tuples and sort
+    product_list = []
+    for product_name, data in product_data.items():
+        product_list.append((
+            product_name,
+            data['total_quantity'],
+            round(data['total_revenue'], 2)
+        ))
+    
+    # Sort by total quantity in descending order
+    product_list.sort(key=lambda x: x[1], reverse=True)
+    
+    # Return top n products
+    return product_list[:n]
+
+
+def customer_analysis(transactions: List[Dict]) -> Dict[str, Dict]:
+    """
+    Analyzes customer purchase patterns
+
+    Args:
+        transactions: List of transaction dictionaries
+
+    Returns:
+        dictionary of customer statistics
+
+    Expected Output Format:
+    {
+        'C001': {
+            'total_spent': 95000.0,
+            'purchase_count': 3,
+            'avg_order_value': 31666.67,
+            'products_bought': ['Laptop', 'Mouse', 'Keyboard']
+        },
+        'C002': {...},
+        ...
+    }
+
+    Requirements:
+    - Calculate total amount spent per customer
+    - Count number of purchases
+    - Calculate average order value
+    - List unique products bought
+    - Sort by total_spent descending
+    """
+    
+    customer_data = {}
+    
+    for transaction in transactions:
+        try:
+            customer_id = transaction.get('CustomerID', '').strip()
+            product_name = transaction.get('ProductName', '').strip()
+            
+            if not customer_id or not product_name:
+                continue
+                
+            quantity = transaction.get('Quantity', 0)
+            unit_price = transaction.get('UnitPrice', 0.0)
+            
+            # Ensure proper types
+            if isinstance(quantity, str):
+                quantity = float(quantity.replace(',', ''))
+            if isinstance(unit_price, str):
+                unit_price = float(unit_price.replace(',', ''))
+            
+            amount_spent = quantity * unit_price
+            
+            if customer_id not in customer_data:
+                customer_data[customer_id] = {
+                    'total_spent': 0.0,
+                    'purchase_count': 0,
+                    'products_bought': set()
+                }
+            
+            customer_data[customer_id]['total_spent'] += amount_spent
+            customer_data[customer_id]['purchase_count'] += 1
+            customer_data[customer_id]['products_bought'].add(product_name)
+            
+        except (ValueError, TypeError):
+            continue
+    
+    # Calculate averages and convert sets to lists
+    result = {}
+    for customer_id, data in customer_data.items():
+        avg_order_value = 0.0
+        if data['purchase_count'] > 0:
+            avg_order_value = round(data['total_spent'] / data['purchase_count'], 2)
+        
+        result[customer_id] = {
+            'total_spent': round(data['total_spent'], 2),
+            'purchase_count': data['purchase_count'],
+            'avg_order_value': avg_order_value,
+            'products_bought': sorted(list(data['products_bought']))
+        }
+    
+    # Sort by total_spent in descending order
+    sorted_result = dict(sorted(
+        result.items(),
+        key=lambda x: x[1]['total_spent'],
+        reverse=True
+    ))
+    
+    return sorted_result
+
+
+# ============================================
+# Task 2.2: Date-based Analysis
+# ============================================
+
+def daily_sales_trend(transactions: List[Dict]) -> Dict[str, Dict]:
+    """
+    Analyzes sales trends by date
+
+    Args:
+        transactions: List of transaction dictionaries
+
+    Returns:
+        dictionary sorted by date
+
+    Expected Output Format:
+    {
+        '2024-12-01': {
+            'revenue': 125000.0,
+            'transaction_count': 8,
+            'unique_customers': 6
+        },
+        '2024-12-02': {...},
+        ...
+    }
+
+    Requirements:
+    - Group by date
+    - Calculate daily revenue
+    - Count daily transactions
+    - Count unique customers per day
+    - Sort chronologically
+    """
+    
+    daily_data = {}
+    
+    for transaction in transactions:
+        try:
+            date = transaction.get('Date', '').strip()
+            customer_id = transaction.get('CustomerID', '').strip()
+            
+            if not date:
+                continue
+                
+            quantity = transaction.get('Quantity', 0)
+            unit_price = transaction.get('UnitPrice', 0.0)
+            
+            # Ensure proper types
+            if isinstance(quantity, str):
+                quantity = float(quantity.replace(',', ''))
+            if isinstance(unit_price, str):
+                unit_price = float(unit_price.replace(',', ''))
+            
+            revenue = quantity * unit_price
+            
+            if date not in daily_data:
+                daily_data[date] = {
+                    'revenue': 0.0,
+                    'transaction_count': 0,
+                    'unique_customers': set()
+                }
+            
+            daily_data[date]['revenue'] += revenue
+            daily_data[date]['transaction_count'] += 1
+            if customer_id:
+                daily_data[date]['unique_customers'].add(customer_id)
+            
+        except (ValueError, TypeError):
+            continue
+    
+    # Prepare final result
+    result = {}
+    for date, data in daily_data.items():
+        result[date] = {
+            'revenue': round(data['revenue'], 2),
+            'transaction_count': data['transaction_count'],
+            'unique_customers': len(data['unique_customers'])
+        }
+    
+    # Sort chronologically
+    sorted_result = dict(sorted(result.items()))
+    
+    return sorted_result
+
+
+def find_peak_sales_day(transactions: List[Dict]) -> Tuple[str, float, int]:
+    """
+    Identifies the date with highest revenue
+
+    Args:
+        transactions: List of transaction dictionaries
+
+    Returns:
+        tuple (date, revenue, transaction_count)
+
+    Expected Output Format:
+    ('2024-12-15', 185000.0, 12)
+    """
+    
+    daily_trend = daily_sales_trend(transactions)
+    
+    if not daily_trend:
+        return ('', 0.0, 0)
+    
+    # Find the date with maximum revenue
+    peak_date = max(daily_trend.items(), key=lambda x: x[1]['revenue'])
+    
+    return (
+        peak_date[0],  # date
+        peak_date[1]['revenue'],  # revenue
+        peak_date[1]['transaction_count']  # transaction_count
+    )
+
+
+# ============================================
+# Task 2.3: Product Performance
+# ============================================
+
+def low_performing_products(transactions: List[Dict], threshold: int = 10) -> List[Tuple]:
+    """
+    Identifies products with low sales
+
+    Args:
+        transactions: List of transaction dictionaries
+        threshold: Minimum quantity threshold (default: 10)
+
+    Returns:
+        list of tuples
+
+    Expected Output Format:
+    [
+        ('Webcam', 4, 12000.0),  # (ProductName, TotalQuantity, TotalRevenue)
+        ('Headphones', 7, 10500.0),
+        ...
+    ]
+
+    Requirements:
+    - Find products with total quantity < threshold
+    - Include total quantity and revenue
+    - Sort by TotalQuantity ascending
+    """
+    
+    product_data = {}
+    
+    # First, aggregate all product data
+    for transaction in transactions:
+        try:
+            product_name = transaction.get('ProductName', '').strip()
+            if not product_name:
+                continue
+                
+            quantity = transaction.get('Quantity', 0)
+            unit_price = transaction.get('UnitPrice', 0.0)
+            
+            # Ensure proper types
+            if isinstance(quantity, str):
+                quantity = int(float(quantity.replace(',', '')))
+            if isinstance(unit_price, str):
+                unit_price = float(unit_price.replace(',', ''))
+            
+            if product_name not in product_data:
+                product_data[product_name] = {
+                    'total_quantity': 0,
+                    'total_revenue': 0.0
+                }
+            
+            product_data[product_name]['total_quantity'] += quantity
+            product_data[product_name]['total_revenue'] += quantity * unit_price
+            
+        except (ValueError, TypeError):
+            continue
+    
+    # Filter products with total quantity < threshold
+    low_performers = []
+    for product_name, data in product_data.items():
+        if data['total_quantity'] < threshold:
+            low_performers.append((
+                product_name,
+                data['total_quantity'],
+                round(data['total_revenue'], 2)
+            ))
+    
+    # Sort by total quantity in ascending order
+    low_performers.sort(key=lambda x: x[1])
+    
+    return low_performers
+
+
+# ============================================
+# Existing functions (keeping for compatibility)
+# ============================================
 
 def validate_and_filter(transactions: List[Dict], 
                        region: Optional[str] = None, 
@@ -22,32 +499,6 @@ def validate_and_filter(transactions: List[Dict],
     - max_amount: maximum transaction amount (optional)
 
     Returns: tuple (valid_transactions, invalid_count, filter_summary)
-
-    Expected Output Format:
-    (
-        [list of valid filtered transactions],
-        5,  # count of invalid transactions
-        {
-            'total_input': 100,
-            'invalid': 5,
-            'filtered_by_region': 20,
-            'filtered_by_amount': 10,
-            'final_count': 65
-        }
-    )
-
-    Validation Rules:
-    - Quantity must be > 0
-    - UnitPrice must be > 0
-    - All required fields must be present
-    - TransactionID must start with 'T'
-    - ProductID must start with 'P'
-    - CustomerID must start with 'C'
-
-    Filter Display:
-    - Print available regions to user before filtering
-    - Print transaction amount range (min/max) to user
-    - Show count of records after each filter applied
     """
     
     print("=" * 60)
@@ -520,3 +971,119 @@ class DataProcessor:
             report.append(f"   Transactions: {customer['transactions']}")
         
         return "\n".join(report)
+
+
+# ============================================
+"""
+Test script for Tasks 2.1, 2.2, and 2.3
+"""
+
+import os
+import sys
+from utils.file_handler import read_sales_data, parse_transactions
+from utils.data_processor import (
+    calculate_total_revenue,
+    region_wise_sales,
+    top_selling_products,
+    customer_analysis,
+    daily_sales_trend,
+    find_peak_sales_day,
+    low_performing_products
+)
+
+def test_part_2_functions():
+    """Test all Part 2 functions"""
+    
+    print("=" * 70)
+    print("TESTING PART 2: DATA PROCESSING FUNCTIONS")
+    print("=" * 70)
+    
+    # Read and parse test data
+    current_dir = os.path.dirname(os.path.abspath(__file__))
+    data_file = os.path.join(current_dir, "data", "sales_data.txt")
+    
+    print("\nLoading test data...")
+    lines = read_sales_data(data_file)
+    transactions = parse_transactions(lines)
+    
+    if not transactions:
+        print("Error: No transactions to test")
+        return
+    
+    print(f"\nLoaded {len(transactions)} transactions for testing")
+    
+    total_points = 0
+    criteria_results = []
+    
+    # ============================================
+    # Task 2.1: Sales Summary Calculator
+    # ============================================
+    print("\n" + "=" * 70)
+    print("TASK 2.1: SALES SUMMARY CALCULATOR")
+    print("=" * 70)
+    
+    # (a) Calculate Total Revenue
+    print("\n(a) Testing calculate_total_revenue()...")
+    total_revenue = calculate_total_revenue(transactions)
+    print(f"Total Revenue: ${total_revenue:,.2f}")
+    
+    # Calculate expected total from sample data
+    expected_revenue = 0
+    for trans in transactions:
+        expected_revenue += trans['Quantity'] * trans['UnitPrice']
+    
+    if abs(total_revenue - expected_revenue) < 0.01:
+        criteria_results.append("✓ calculate_total_revenue(): Returns exact correct total (+3 points)")
+        total_points += 3
+    else:
+        criteria_results.append(f"✗ calculate_total_revenue(): Expected ${expected_revenue:,.2f}, got ${total_revenue:,.2f}")
+    
+    # (b) Region-wise Sales Analysis
+    print("\n(b) Testing region_wise_sales()...")
+    region_sales = region_wise_sales(transactions)
+    print(f"Regions found: {list(region_sales.keys())}")
+    
+    # Validate region data
+    region_tests_passed = 0
+    if region_sales:
+        # Test 1: Check totals per region
+        region_totals_correct = True
+        for region, data in region_sales.items():
+            print(f"  {region}: ${data['total_sales']:,.2f} ({data['transaction_count']} transactions)")
+        
+        # Test 2: Check transaction counts
+        total_transactions = sum(data['transaction_count'] for data in region_sales.values())
+        if total_transactions == len(transactions):
+            region_tests_passed += 1
+        
+        # Test 3: Check percentages sum to ~100%
+        total_percentage = sum(data['percentage'] for data in region_sales.values())
+        if 99.9 <= total_percentage <= 100.1:
+            region_tests_passed += 1
+        
+        if region_tests_passed == 3:
+            criteria_results.append("✓ region_wise_sales(): All region calculations correct (+4 points)")
+            total_points += 4
+        else:
+            criteria_results.append(f"✗ region_wise_sales(): {region_tests_passed}/3 tests passed")
+    
+    # (c) Top Selling Products
+    print("\n(c) Testing top_selling_products()...")
+    top_products = top_selling_products(transactions, n=5)
+    print(f"Top 5 products by quantity sold:")
+    for i, (name, qty, revenue) in enumerate(top_products, 1):
+        print(f"  {i}. {name}: {qty} units, ${revenue:,.2f}")
+    
+    # Validate top products
+    if len(top_products) == 5:
+        # Check sorting (should be descending by quantity)
+        sorted_correctly = all(
+            top_products[i][1] >= top_products[i+1][1] 
+            for i in range(len(top_products)-1)
+        )
+        
+        if sorted_correctly:
+            criteria_results.append("✓ top_selling_products(): Correct aggregation and sorting (+4 points)")
+            total_points += 4
+        else:
+            criteria_results.append("
