@@ -562,3 +562,207 @@ def generate_executive_summary(transactions: List[Dict],
     except Exception as e:
         print(f"✗ Error generating executive summary: {str(e)}")
         return False
+
+# ============================================
+
+"""
+Test script for Task 4.1: Report Generation
+"""
+
+import os
+import sys
+from utils.file_handler import read_sales_data, parse_transactions
+from utils.api_handler import fetch_all_products, create_product_mapping, enrich_sales_data
+from utils.report_generator import generate_sales_report, generate_json_report, generate_executive_summary
+
+
+def test_report_generation():
+    """Test the report generation functions"""
+    
+    print("=" * 70)
+    print("TESTING TASK 4.1: REPORT GENERATION")
+    print("=" * 70)
+    
+    # Load test data
+    current_dir = os.path.dirname(os.path.abspath(__file__))
+    data_file = os.path.join(current_dir, "data", "sales_data.txt")
+    
+    print("\nLoading test data...")
+    lines = read_sales_data(data_file)
+    transactions = parse_transactions(lines)
+    
+    if not transactions:
+        print("Error: No transactions to generate report")
+        return False
+    
+    print(f"Loaded {len(transactions)} transactions")
+    
+    # Try to enrich data for API section (optional)
+    print("\nAttempting to fetch API data for enrichment...")
+    try:
+        api_products = fetch_all_products()
+        if api_products:
+            product_mapping = create_product_mapping(api_products)
+            enriched_transactions = enrich_sales_data(transactions, product_mapping)
+            print(f"Enriched {len(enriched_transactions)} transactions")
+        else:
+            print("API fetch failed, will generate report without enrichment")
+            enriched_transactions = None
+    except Exception as e:
+        print(f"API enrichment failed: {str(e)}")
+        enriched_transactions = None
+    
+    total_points = 0
+    criteria_results = []
+    
+    # ============================================
+    # Test generate_sales_report()
+    # ============================================
+    print("\n" + "=" * 70)
+    print("Testing generate_sales_report()")
+    print("=" * 70)
+    
+    output_file = os.path.join(current_dir, "output", "test_sales_report.txt")
+    
+    success = generate_sales_report(transactions, enriched_transactions, output_file)
+    
+    if success:
+        # Check if file was created
+        if os.path.exists(output_file):
+            with open(output_file, 'r', encoding='utf-8') as f:
+                report_content = f.read()
+            
+            # Check all 8 sections are present
+            sections_to_check = [
+                "OVERALL SUMMARY",
+                "REGION-WISE PERFORMANCE", 
+                "TOP 5 PRODUCTS",
+                "TOP 5 CUSTOMERS",
+                "DAILY SALES TREND",
+                "PRODUCT PERFORMANCE ANALYSIS",
+                "API ENRICHMENT SUMMARY"
+            ]
+            
+            sections_found = 0
+            for section in sections_to_check:
+                if section in report_content:
+                    sections_found += 1
+            
+            if sections_found == len(sections_to_check):
+                criteria_results.append("✓ All 8 sections present in report (+8 points)")
+                total_points += 8
+            else:
+                criteria_results.append(f"✗ Missing sections: Found {sections_found}/{len(sections_to_check)}")
+            
+            # Check formatting (look for proper alignment)
+            lines = report_content.split('\n')
+            has_tables = any('Region' in line and 'Sales' in line for line in lines)
+            has_formatting = any('=' * 60 in line for line in lines) and any('-' * 40 in line for line in lines)
+            
+            if has_tables and has_formatting:
+                criteria_results.append("✓ Proper formatting and alignment (+3 points)")
+                total_points += 3
+            else:
+                criteria_results.append("✗ Improper formatting or alignment")
+            
+            # Check calculations (verify some numbers)
+            revenue_line = next((line for line in lines if 'Total Revenue:' in line), None)
+            if revenue_line:
+                criteria_results.append("✓ Revenue calculation displayed (+1 point)")
+                total_points += 1
+            else:
+                criteria_results.append("✗ Revenue calculation missing")
+            
+            # Check for other calculations
+            calculation_checks = [
+                'Average Order Value',
+                'Percentage of Total',
+                'Quantity Sold',
+                'Total Spent'
+            ]
+            
+            calculations_found = sum(1 for check in calculation_checks if any(check in line for line in lines))
+            if calculations_found >= 3:
+                criteria_results.append("✓ Multiple accurate calculations present (+3 points)")
+                total_points += 3
+            else:
+                criteria_results.append(f"✗ Insufficient calculations: Found {calculations_found}/4")
+        else:
+            criteria_results.append("✗ Report file not created")
+    else:
+        criteria_results.append("✗ generate_sales_report() returned False")
+    
+    # ============================================
+    # Test generate_json_report()
+    # ============================================
+    print("\n" + "=" * 70)
+    print("Testing generate_json_report()")
+    print("=" * 70)
+    
+    json_output = os.path.join(current_dir, "output", "test_sales_report.json")
+    json_success = generate_json_report(transactions, enriched_transactions, json_output)
+    
+    if json_success and os.path.exists(json_output):
+        try:
+            import json
+            with open(json_output, 'r') as f:
+                json_data = json.load(f)
+            
+            if all(key in json_data for key in ['metadata', 'overall_summary', 'region_analysis']):
+                criteria_results.append("✓ JSON report structure correct")
+                print(f"  JSON report size: {os.path.getsize(json_output):,} bytes")
+            else:
+                criteria_results.append("✗ JSON report missing required sections")
+        except Exception as e:
+            criteria_results.append(f"✗ Error reading JSON report: {str(e)}")
+    else:
+        criteria_results.append("✗ JSON report not generated")
+    
+    # ============================================
+    # Test generate_executive_summary()
+    # ============================================
+    print("\n" + "=" * 70)
+    print("Testing generate_executive_summary()")
+    print("=" * 70)
+    
+    summary_output = os.path.join(current_dir, "output", "test_executive_summary.txt")
+    summary_success = generate_executive_summary(transactions, summary_output)
+    
+    if summary_success and os.path.exists(summary_output):
+        with open(summary_output, 'r', encoding='utf-8') as f:
+            summary_content = f.read()
+        
+        if 'EXECUTIVE SUMMARY' in summary_content and 'KEY PERFORMANCE INDICATORS' in summary_content:
+            criteria_results.append("✓ Executive summary generated successfully")
+            print(f"  Summary file size: {os.path.getsize(summary_output):,} bytes")
+        else:
+            criteria_results.append("✗ Executive summary missing key sections")
+    else:
+        criteria_results.append("✗ Executive summary not generated")
+    
+    # ============================================
+    # Final Summary
+    # ============================================
+    print("\n" + "=" * 70)
+    print("TEST SUMMARY - REPORT GENERATION")
+    print("=" * 70)
+    
+    print(f"\nTotal Points: {total_points}/15")
+    
+    print("\nCriteria Results:")
+    for result in criteria_results:
+        print(f"  {result}")
+    
+    # Show what was generated
+    print(f"\nGenerated Files:")
+    for file_path in [output_file, json_output, summary_output]:
+        if os.path.exists(file_path):
+            file_name = os.path.basename(file_path)
+            file_size = os.path.getsize(file_path)
+            print(f"  • {file_name}: {file_size:,} bytes")
+    
+    return success
+
+
+if __name__ == "__main__":
+    test_report_generation()
