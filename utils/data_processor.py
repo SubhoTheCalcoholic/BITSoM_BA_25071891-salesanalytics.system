@@ -4,8 +4,207 @@ Handles data cleaning, validation, and analysis operations
 """
 
 import re
-from typing import List, Dict, Optional, Tuple
+from typing import List, Dict, Optional, Tuple, Any
 from datetime import datetime
+
+
+def validate_and_filter(transactions: List[Dict], 
+                       region: Optional[str] = None, 
+                       min_amount: Optional[float] = None, 
+                       max_amount: Optional[float] = None) -> Tuple[List[Dict], int, Dict[str, Any]]:
+    """
+    Validates transactions and applies optional filters
+
+    Parameters:
+    - transactions: list of transaction dictionaries
+    - region: filter by specific region (optional)
+    - min_amount: minimum transaction amount (Quantity * UnitPrice) (optional)
+    - max_amount: maximum transaction amount (optional)
+
+    Returns: tuple (valid_transactions, invalid_count, filter_summary)
+
+    Expected Output Format:
+    (
+        [list of valid filtered transactions],
+        5,  # count of invalid transactions
+        {
+            'total_input': 100,
+            'invalid': 5,
+            'filtered_by_region': 20,
+            'filtered_by_amount': 10,
+            'final_count': 65
+        }
+    )
+
+    Validation Rules:
+    - Quantity must be > 0
+    - UnitPrice must be > 0
+    - All required fields must be present
+    - TransactionID must start with 'T'
+    - ProductID must start with 'P'
+    - CustomerID must start with 'C'
+
+    Filter Display:
+    - Print available regions to user before filtering
+    - Print transaction amount range (min/max) to user
+    - Show count of records after each filter applied
+    """
+    
+    print("=" * 60)
+    print("DATA VALIDATION AND FILTERING")
+    print("=" * 60)
+    
+    # Initialize counters and lists
+    valid_transactions = []
+    invalid_transactions = []
+    filtered_transactions = transactions.copy()
+    
+    # Calculate transaction amounts for all transactions
+    for transaction in filtered_transactions:
+        try:
+            amount = transaction['Quantity'] * transaction['UnitPrice']
+            transaction['Amount'] = amount
+        except KeyError:
+            transaction['Amount'] = 0
+    
+    # Step 1: Display available options to user
+    print("\nStep 1: Analyzing available data...")
+    
+    # Get unique regions
+    regions = sorted(set(t.get('Region', '') for t in filtered_transactions if t.get('Region')))
+    print(f"Available Regions: {', '.join(regions)}")
+    
+    # Get amount range
+    amounts = [t.get('Amount', 0) for t in filtered_transactions]
+    if amounts:
+        min_available = min(amounts)
+        max_available = max(amounts)
+        print(f"Transaction Amount Range: ${min_available:,.2f} to ${max_available:,.2f}")
+    
+    # Step 2: Validate transactions
+    print("\nStep 2: Validating transactions...")
+    for transaction in transactions:
+        is_valid = True
+        error_messages = []
+        
+        # Check all required fields are present
+        required_fields = ['TransactionID', 'Date', 'ProductID', 'ProductName', 
+                          'Quantity', 'UnitPrice', 'CustomerID', 'Region']
+        for field in required_fields:
+            if field not in transaction or not transaction[field]:
+                is_valid = False
+                error_messages.append(f"Missing {field}")
+                break
+        
+        if is_valid:
+            # Check TransactionID starts with 'T'
+            if not str(transaction['TransactionID']).startswith('T'):
+                is_valid = False
+                error_messages.append("TransactionID must start with 'T'")
+            
+            # Check ProductID starts with 'P'
+            if not str(transaction['ProductID']).startswith('P'):
+                is_valid = False
+                error_messages.append("ProductID must start with 'P'")
+            
+            # Check CustomerID starts with 'C'
+            if not str(transaction['CustomerID']).startswith('C'):
+                is_valid = False
+                error_messages.append("CustomerID must start with 'C'")
+            
+            # Check Quantity > 0
+            try:
+                quantity = int(transaction['Quantity'])
+                if quantity <= 0:
+                    is_valid = False
+                    error_messages.append(f"Quantity must be > 0 (got {quantity})")
+            except (ValueError, TypeError):
+                is_valid = False
+                error_messages.append("Invalid Quantity value")
+            
+            # Check UnitPrice > 0
+            try:
+                unit_price = float(transaction['UnitPrice'])
+                if unit_price <= 0:
+                    is_valid = False
+                    error_messages.append(f"UnitPrice must be > 0 (got {unit_price})")
+            except (ValueError, TypeError):
+                is_valid = False
+                error_messages.append("Invalid UnitPrice value")
+        
+        if is_valid:
+            valid_transactions.append(transaction)
+        else:
+            transaction['ValidationError'] = ', '.join(error_messages)
+            invalid_transactions.append(transaction)
+    
+    print(f"Total input transactions: {len(transactions)}")
+    print(f"Valid transactions: {len(valid_transactions)}")
+    print(f"Invalid transactions: {len(invalid_transactions)}")
+    
+    # Step 3: Apply region filter (if specified)
+    filtered_by_region = 0
+    if region:
+        print(f"\nStep 3: Applying region filter for '{region}'...")
+        region_filtered = [t for t in valid_transactions if t.get('Region', '').lower() == region.lower()]
+        filtered_by_region = len(valid_transactions) - len(region_filtered)
+        valid_transactions = region_filtered
+        print(f"Transactions after region filter: {len(valid_transactions)}")
+    else:
+        print("\nStep 3: No region filter applied")
+    
+    # Step 4: Apply amount filters (if specified)
+    filtered_by_amount = 0
+    if min_amount is not None or max_amount is not None:
+        print(f"\nStep 4: Applying amount filters...")
+        print(f"  - Minimum amount: {'$' + str(min_amount) if min_amount is not None else 'Not specified'}")
+        print(f"  - Maximum amount: {'$' + str(max_amount) if max_amount is not None else 'Not specified'}")
+        
+        amount_filtered = []
+        for transaction in valid_transactions:
+            amount = transaction.get('Amount', 0)
+            include = True
+            
+            if min_amount is not None and amount < min_amount:
+                include = False
+            
+            if max_amount is not None and amount > max_amount:
+                include = False
+            
+            if include:
+                amount_filtered.append(transaction)
+        
+        filtered_by_amount = len(valid_transactions) - len(amount_filtered)
+        valid_transactions = amount_filtered
+        print(f"Transactions after amount filter: {len(valid_transactions)}")
+    else:
+        print("\nStep 4: No amount filters applied")
+    
+    # Calculate final summary
+    filter_summary = {
+        'total_input': len(transactions),
+        'invalid': len(invalid_transactions),
+        'filtered_by_region': filtered_by_region,
+        'filtered_by_amount': filtered_by_amount,
+        'final_count': len(valid_transactions),
+        'available_regions': regions,
+        'amount_range': {
+            'min': min_available if amounts else 0,
+            'max': max_available if amounts else 0
+        }
+    }
+    
+    # Display final summary
+    print("\n" + "=" * 60)
+    print("FILTERING SUMMARY")
+    print("=" * 60)
+    print(f"Total transactions processed: {filter_summary['total_input']}")
+    print(f"Invalid transactions removed: {filter_summary['invalid']}")
+    print(f"Filtered by region: {filter_summary['filtered_by_region']}")
+    print(f"Filtered by amount: {filter_summary['filtered_by_amount']}")
+    print(f"Final valid transactions: {filter_summary['final_count']}")
+    
+    return valid_transactions, len(invalid_transactions), filter_summary
 
 
 class DataProcessor:
@@ -76,12 +275,12 @@ class DataProcessor:
             return False, "Missing Region"
         
         # Validate Quantity
-        quantity = DataProcessor.clean_numeric_value(record.get('Quantity', '0'))
+        quantity = DataProcessor.clean_numeric_value(str(record.get('Quantity', '0')))
         if quantity is None or quantity <= 0:
             return False, f"Invalid Quantity: {record.get('Quantity')}"
         
         # Validate UnitPrice
-        unit_price = DataProcessor.clean_numeric_value(record.get('UnitPrice', '0'))
+        unit_price = DataProcessor.clean_numeric_value(str(record.get('UnitPrice', '0')))
         if unit_price is None or unit_price <= 0:
             return False, f"Invalid UnitPrice: {record.get('UnitPrice')}"
         
@@ -126,8 +325,8 @@ class DataProcessor:
             )
             
             # Clean and convert numeric fields
-            quantity = DataProcessor.clean_numeric_value(cleaned_record.get('Quantity', '0'))
-            unit_price = DataProcessor.clean_numeric_value(cleaned_record.get('UnitPrice', '0'))
+            quantity = DataProcessor.clean_numeric_value(str(cleaned_record.get('Quantity', '0')))
+            unit_price = DataProcessor.clean_numeric_value(str(cleaned_record.get('UnitPrice', '0')))
             
             cleaned_record['Quantity'] = quantity
             cleaned_record['UnitPrice'] = unit_price
